@@ -2,10 +2,9 @@ package com.aleferamos.hrpayroll.services;
 
 import com.aleferamos.hrpayroll.entities.Payment;
 import com.aleferamos.hrpayroll.entities.Worker;
+import com.aleferamos.hrpayroll.feignclients.WorkerFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,17 +12,12 @@ import java.util.Map;
 @Service
 public class PaymentService {
 
-    @Value("${hr-worker.host}")
-    private String workerHost;
-
     @Autowired
-    private RestTemplate restTemplate;
+    private WorkerFeignClient workerFeignClient;
 
     public Payment getPayment(long workId, int days){
-        Map<String, String> uriVariables = new HashMap<>();
-        uriVariables.put("id", "" + workId);
 
-        Worker worker = restTemplate.getForObject(workerHost + "/workers/{id}", Worker.class, uriVariables);
+        Worker worker = workerFeignClient.findById(workId).getBody();
         return new Payment(worker.getName(), worker.getDailyIncome(), days);
     }
 }
